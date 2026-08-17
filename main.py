@@ -1,49 +1,72 @@
 from fastapi.middleware.cors import CORSMiddleware
-from tensorflow.keras.models import load_model
 from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 from fastapi import FastAPI,HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel,Field
+from pathlib import Path
 import pickle
 import re
-from pathlib import Path
-import os
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 import numpy as np
+import tflite_runtime.interpreter as tflite
 
 # Get the absolute path to the project directory
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 ARTIFACTS_DIR = BASE_DIR / "Artifacts"
 
+def pad_sequences_manual(sequences, maxlen, padding='post', truncating='post', value=0):
+    """
+    A dependency-free implementation of Keras's pad_sequences.
+    """
+    padded_sequences = []
+    for seq in sequences:
+        if len(seq) > maxlen:
+            if truncating == 'post':
+                truncated_seq = seq[:maxlen]
+            else: # pre
+                truncated_seq = seq[len(seq) - maxlen:]
+        else:
+            truncated_seq = seq
+        
+        num_padding = maxlen - len(truncated_seq)
+        if padding == 'post':
+            padded_seq = truncated_seq + [value] * num_padding
+        else: # pre
+            padded_seq = [value] * num_padding + truncated_seq
+            
+        padded_sequences.append(padded_seq)
+    return np.array(padded_sequences)
+
 # Loading the model and tokenizer once the server starts up
 dl_model = {}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print('Loading Model and Tokenizer')
-    model_file = ARTIFACTS_DIR / "Bidirec_gru_model.keras"
+    print('Loading TFLite Model and Tokenizer')
+    model_file = ARTIFACTS_DIR / "Bidirec_gru_model.tflite"
     tokenizer_file = ARTIFACTS_DIR / "tokenizer.pkl"
     
     if not model_file.exists():
-        raise FileNotFoundError(f"Model file not found: {model_file}")
+        raise FileNotFoundError(f"TFLite model file not found: {model_file}. Did you run convert_to_tflite.py?")
     if not tokenizer_file.exists():
         raise FileNotFoundError(f"Tokenizer file not found: {tokenizer_file}")
     
-    dl_model["BIGRU Model"] = load_model(str(model_file))
+    # Load TFLite model and allocate tensors.
+    interpreter = tflite.Interpreter(model_path=str(model_file))
+    interpreter.allocate_tensors()
+    dl_model["interpreter"] = interpreter
+    dl_model["input_details"] = interpreter.get_input_details()
+    dl_model["output_details"] = interpreter.get_output_details()
     with open(str(tokenizer_file),'rb') as f:
         dl_model['Tokenizer'] = pickle.load(f)
     print("Model and server loaded successfully")
-    yield #Pause : Model is loaded and server is running 
+    yield
     dl_model.clear()
 
 app = FastAPI(
     lifespan=lifespan,
 )
-
-model_path = str(ARTIFACTS_DIR / "Bidirec_gru_model.keras")
-tokenizer_path = str(ARTIFACTS_DIR / "tokenizer.pkl")
 
 max_seq_len = 50
 
@@ -130,16 +153,18 @@ def server_ui():
 
 @app.get('/health', response_model=Health_Response)
 def health_check():
-    model_status = bool(dl_model.get("BIGRU Model") and dl_model.get("Tokenizer"))
+    model_status = bool(dl_model.get("interpreter") and dl_model.get("Tokenizer"))
     return Health_Response(status="Server is Running", model_loaded=model_status)
 
 
 @app.post('/predict',response_model = Prediction_Response)
 def predict_response(Input_text : Input):
-    BiGRU_Model = dl_model.get('BIGRU Model')
+    interpreter = dl_model.get('interpreter')
+    input_details = dl_model.get('input_details')
+    output_details = dl_model.get('output_details')
     tokenizer = dl_model.get('Tokenizer')
 
-    if BiGRU_Model is None or tokenizer is None:
+    if not all([interpreter, input_details, output_details, tokenizer]):
         raise HTTPException(
             status_code=503,
             detail="Model not loaded yet. Please try again later"
@@ -151,15 +176,22 @@ def predict_response(Input_text : Input):
     # Convert the words into tokens
     tokenized_text = tokenizer.texts_to_sequences([cleaned_text])
 
-    padded_sequence = pad_sequences(
-    tokenized_text,
-    maxlen = max_seq_len,
-    padding ="post",
-    truncating="post"
+    # Use the manual padding function
+    padded_sequence = pad_sequences_manual(
+        tokenized_text,
+        maxlen=max_seq_len,
+        padding="post",
+        truncating="post"
     )
 
+    # Prepare input tensor, ensuring correct dtype for the TFLite model
+    input_data = np.array(padded_sequence, dtype=np.float32)
 
-    probabilities = BiGRU_Model.predict(padded_sequence)[0]
+    # Set tensor, invoke, and get output
+    interpreter.set_tensor(input_details[0]['index'], input_data)
+    interpreter.invoke()
+    probabilities = interpreter.get_tensor(output_details[0]['index'])[0]
+
     top_emotion_index = int(np.argmax(probabilities))
     all_probabilities = {label:float(prob) for label,prob in zip(emotion_labels,probabilities)}
 
@@ -169,4 +201,3 @@ def predict_response(Input_text : Input):
         confidence=float(probabilities[top_emotion_index]),
         all_prob=all_probabilities
     )
-
