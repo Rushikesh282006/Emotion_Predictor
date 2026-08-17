@@ -75,7 +75,7 @@ Ensure the following files exist in the `Artifacts/` directory:
 ### Step 4: Run the Application
 
 ```bash
-uvicorn main:app --reload
+uvicorn main:app --reload --host 0.0.0.0
 ```
 
 The application will start and display:
