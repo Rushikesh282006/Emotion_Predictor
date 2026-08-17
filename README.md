@@ -17,7 +17,7 @@ A sophisticated web application that analyzes text to detect and classify emotio
 
 - **Backend**: FastAPI (Python)
 - **Deep Learning**: TensorFlow/Keras
-- **Model Architecture**: Bidirectional GRU (Bi-GRU) Neural Network
+- **Model Architecture**: Bidirectional GRU (Bi-GRU), deployed as TensorFlow Lite
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
 - **Web Server**: Uvicorn
 - **Python Version**: 3.11.9
