@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Emotion Scanner</title>
+<meta name="description" content="Type a sentence and watch a BiGRU model read the emotion underneath it." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+
+<main class="device">
+
+  <header class="device__header">
+    <div class="brand">
+      <span class="status-dot" id="statusDot" title="Model status"></span>
+      <div class="brand__text">
+        <h1 class="brand__title">EMOTION SCANNER</h1>
+        <p class="brand__tagline">Type a sentence. See what it's carrying underneath.</p>
+      </div>
+    </div>
+    <div class="brand__status" id="statusText">checking model&hellip;</div>
+  </header>
+
+  <div class="device__body">
+
+    <section class="input-bay">
+      <label for="textInput" class="sr-only">Text to analyze</label>
+      <div class="input-bay__frame" id="inputFrame">
+        <textarea
+          id="textInput"
+          maxlength="2000"
+          rows="4"
+          placeholder="e.g. I can't believe we actually pulled this off."
+        ></textarea>
+        <div class="scan-sweep" id="scanSweep" aria-hidden="true"></div>
+      </div>
+      <div class="input-bay__footer">
+        <span class="char-count" id="charCount">0 / 2000</span>
+        <span class="hint">⌘/Ctrl + Enter to scan</span>
+        <button id="scanBtn" class="scan-btn" disabled>
+          <span class="scan-btn__label">Scan text</span>
+          <span class="scan-btn__icon" aria-hidden="true">
+            <svg viewBox="0 0 16 16" width="14" height="14"><path d="M2 8h10M8 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <section class="readout" id="readout" data-state="idle">
+
+      <div class="readout__panel readout__idle" id="idleState">
+        <svg class="flatline" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true">
+          <path id="flatlinePath" d="M0,30 L400,30" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        <p>Nothing scanned yet &mdash; the needle's at rest.</p>
+      </div>
+
+      <div class="readout__panel readout__error" id="errorState" hidden>
+        <span class="error-glyph" aria-hidden="true">&#9888;</span>
+        <p id="errorMessage">Something went wrong.</p>
+      </div>
+
+      <div class="readout__panel readout__result" id="resultState" hidden>
+        <div class="result-primary">
+          <span class="result-emoji" id="resultEmoji" aria-hidden="true">&#128522;</span>
+          <div class="result-primary__text">
+            <div class="result-label" id="resultLabel">&mdash;</div>
+            <div class="result-confidence"><span id="resultConfidence">0</span>% confidence</div>
+          </div>
+        </div>
+
+        <div class="spectrum" id="spectrum" role="img" aria-label="Probability per emotion"></div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <footer class="device__footer">
+    <span>BiGRU &middot; 6-class emotion model</span>
+  </footer>
+
+</main>
+
+<script src="/static/script.js"></script>
+</body>
+</html>
