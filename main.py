@@ -54,6 +54,8 @@ async def lifespan(app: FastAPI):
     
     # Load TFLite model and allocate tensors.
     interpreter = tf.lite.Interpreter(model_path=str(model_file))
+    input_details = interpreter.get_input_details()
+    interpreter.resize_tensor_input(input_details[0]['index'], [1, max_seq_len])
     interpreter.allocate_tensors()
     dl_model["interpreter"] = interpreter
     dl_model["input_details"] = interpreter.get_input_details()
