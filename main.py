@@ -8,7 +8,7 @@ from pathlib import Path
 import pickle
 import re
 import numpy as np
-import tflite_runtime.interpreter as tflite
+import tensorflow as tf
 
 # Get the absolute path to the project directory
 BASE_DIR = Path(__file__).resolve().parent
@@ -53,7 +53,7 @@ async def lifespan(app: FastAPI):
         raise FileNotFoundError(f"Tokenizer file not found: {tokenizer_file}")
     
     # Load TFLite model and allocate tensors.
-    interpreter = tflite.Interpreter(model_path=str(model_file))
+    interpreter = tf.lite.Interpreter(model_path=str(model_file))
     interpreter.allocate_tensors()
     dl_model["interpreter"] = interpreter
     dl_model["input_details"] = interpreter.get_input_details()
