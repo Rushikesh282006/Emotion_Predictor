@@ -325,9 +325,6 @@ Error: Address already in use
 uvicorn main:app --port 8001
 ```
 
-## 📝 License
-
-This project is provided as-is for educational and research purposes.
 
 ## 👨‍💻 Author
 
