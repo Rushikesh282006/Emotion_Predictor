@@ -38,6 +38,18 @@ def pad_sequences_manual(sequences, maxlen, padding='post', truncating='post', v
         padded_sequences.append(padded_seq)
     return np.array(padded_sequences)
 
+# Configuration and Constants
+max_seq_len = 50
+emotion_labels = ['sadness', 'joy', 'love', 'anger', 'fear', 'surprise']
+emotion_emojis = {
+    'sadness': '😞',
+    'joy': '😆',
+    'love': '😍',
+    'anger': '😡',
+    'fear': '😱',
+    'surprise': '😮'
+}
+
 # Loading the model and tokenizer once the server starts up
 dl_model = {}
 
@@ -46,6 +58,11 @@ async def lifespan(app: FastAPI):
     print('Loading TFLite Model and Tokenizer')
     model_file = ARTIFACTS_DIR / "Bidirec_gru_model_kaggle.tflite"
     tokenizer_file = ARTIFACTS_DIR / "tokenizer_kaggle.pkl"
+    if not model_file.exists():
+        model_file = ARTIFACTS_DIR / "Bidirec_gru_model.tflite"
+    if not tokenizer_file.exists():
+        tokenizer_file = ARTIFACTS_DIR / "tokenizer.pkl"
+
     if not model_file.exists():
         raise FileNotFoundError(f"TFLite model file not found: {model_file}. Did you run convert_to_tflite.py?")
     if not tokenizer_file.exists():
@@ -68,19 +85,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     lifespan=lifespan,
 )
-
-max_seq_len = 50
-
-emotion_labels = ['sadness','joy','love','anger','fear','surprise']
-
-emotion_emojis = {
-    'sadness': '😞',
-    'joy': '😆',
-    'love': '😍',
-    'anger': '😡',
-    'fear': '😱',
-    'surprise': '😮'
-}
 
 """
 Converting string to lowercase
