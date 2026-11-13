@@ -382,6 +382,7 @@ Error: Address already in use
 uvicorn main:app --port 8001
 ```
 
+<<<<<<< HEAD
 ## 🙏 Acknowledgments & Credits
 
 - Dataset provided by Praveen Govi on Kaggle: [Emotions dataset for NLP](https://www.kaggle.com/datasets/praveengovi/emotions-dataset-for-nlp) (`praveengovi/emotions-dataset-for-nlp`).
@@ -390,6 +391,8 @@ uvicorn main:app --port 8001
 ## 📝 License
 
 This project is provided as-is for educational and research purposes.
+=======
+>>>>>>> 61e0a6c05be7c35eb11771acf388d85fd2500b39
 
 ## 👨‍💻 Author
 
