@@ -44,9 +44,8 @@ dl_model = {}
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print('Loading TFLite Model and Tokenizer')
-    model_file = ARTIFACTS_DIR / "Bidirec_gru_model.tflite"
-    tokenizer_file = ARTIFACTS_DIR / "tokenizer.pkl"
-    
+    model_file = ARTIFACTS_DIR / "Bidirec_gru_model_kaggle.tflite"
+    tokenizer_file = ARTIFACTS_DIR / "tokenizer_kaggle.pkl"
     if not model_file.exists():
         raise FileNotFoundError(f"TFLite model file not found: {model_file}. Did you run convert_to_tflite.py?")
     if not tokenizer_file.exists():

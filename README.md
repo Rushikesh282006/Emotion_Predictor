@@ -27,16 +27,21 @@ A sophisticated web application that analyzes text to detect and classify emotio
 ```
 Semantic_Analyzer_project/
 ├── main.py                          # FastAPI application and API endpoints
+├── convert_to_tflite.py             # Conversion script to TensorFlow Lite
 ├── requirements.txt                 # Python dependencies
 ├── runtime.txt                      # Python runtime specification
-├── README.md                        # This file
+├── README.md                        # Project documentation
+├── assets/
+│   ├── confusion_matrix.png        # Evaluation confusion matrix plot
+│   └── classification_report.png   # Model classification report
 ├── Artifacts/
-│   ├── Bidirec_gru_model.keras     # Pre-trained Bi-GRU model
-│   └── tokenizer.pkl                # Trained tokenizer for text preprocessing
+│   ├── Bidirec_gru_model.keras     # Pre-trained Bi-GRU model (Keras format)
+│   ├── Bidirec_gru_model.tflite    # Lightweight TFLite model
+│   └── tokenizer.pkl               # Trained tokenizer for text preprocessing
 └── static/
-    ├── index.html                   # Frontend UI
-    ├── script.js                    # Client-side logic and API integration
-    └── style.css                    # Styling and animations
+    ├── index.html                  # Frontend UI
+    ├── script.js                   # Client-side logic and API integration
+    └── style.css                   # Styling and animations
 ```
 
 ## 🚀 Installation & Setup
@@ -191,6 +196,16 @@ Serves CSS and JavaScript resources
 - **Sequence Length**: 50 tokens (maximum)
 - **Output**: 6 emotion classes with probability distribution
 
+### 📊 Dataset
+The model was trained, validated, and tested on the Kaggle [Emotions dataset for NLP](https://www.kaggle.com/datasets/praveengovi/emotions-dataset-for-nlp) (`praveengovi/emotions-dataset-for-nlp`):
+- **Source**: Kaggle (`praveengovi/emotions-dataset-for-nlp`)
+- **Total Samples**: 20,000 labeled texts across 6 emotional categories
+- **Data Splits**:
+  - **Train**: 16,000 samples (used for model training)
+  - **Validation**: 2,000 samples (used for tuning and validation)
+  - **Test**: 2,000 samples (used for the final classification report and confusion matrix)
+- **Target Labels**: `sadness` (581 test), `joy` (695 test), `love` (159 test), `anger` (275 test), `fear` (224 test), and `surprise` (66 test)
+
 ### Emotion Classes
 | Emotion | Emoji | Color |
 |---------|-------|-------|
@@ -208,13 +223,55 @@ Serves CSS and JavaScript resources
 4. **Normalize Whitespace**: Remove extra spaces and trim
 
 ### Model Files
-- **Model File**: `Bidirec_gru_model.keras` (~12 MB)
-  - Format: Keras H5 format
+- **Model File**: `Bidirec_gru_model.keras` (~12 MB) / `Bidirec_gru_model_kaggle.tflite`
+  - Format: Keras format & optimized TensorFlow Lite flatbuffer
   - Pre-trained on emotion dataset
   
-- **Tokenizer File**: `tokenizer.pkl` 
+- **Tokenizer File**: `tokenizer.pkl` / `tokenizer_kaggle.pkl`
   - Format: Pickle serialization
   - Contains vocabulary and word-to-index mappings
+
+### 📈 Model Evaluation & Performance
+
+The optimized Bidirectional GRU model was evaluated on a held-out test set of **2,000 samples** across all 6 emotion categories. It achieved an overall **Accuracy of 90%** and a **Weighted F1-Score of 0.91**.
+
+#### Classification Report
+
+<p align="center">
+  <img src="assets/classification_report.png" alt="Classification Report" width="480"/>
+</p>
+
+| Emotion | Precision | Recall | F1-Score | Support |
+|:---|:---:|:---:|:---:|:---:|
+| **Sadness** | 0.95 | 0.93 | 0.94 | 581 |
+| **Joy** | 0.96 | 0.88 | 0.92 | 695 |
+| **Love** | 0.72 | 0.95 | 0.82 | 159 |
+| **Anger** | 0.92 | 0.92 | 0.92 | 275 |
+| **Fear** | 0.89 | 0.83 | 0.86 | 224 |
+| **Surprise** | 0.60 | 0.88 | 0.72 | 66 |
+| **Accuracy** | | | **0.90** | **2000** |
+| **Macro Avg** | **0.84** | **0.90** | **0.86** | **2000** |
+| **Weighted Avg** | **0.91** | **0.90** | **0.91** | **2000** |
+
+#### Confusion Matrix: Optimized Bidirectional GRU
+
+<p align="center">
+  <img src="assets/confusion_matrix.png" alt="Confusion Matrix: Optimized Bidirectional GRU" width="540"/>
+</p>
+
+| True \ Predicted | Sadness | Joy | Love | Anger | Fear | Surprise | Total Samples |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **Sadness** | **543** | 14 | 2 | 15 | 5 | 2 | 581 |
+| **Joy** | 7 | **613** | 56 | 2 | 8 | 9 | 695 |
+| **Love** | 0 | 5 | **151** | 2 | 0 | 1 | 159 |
+| **Anger** | 8 | 3 | 1 | **254** | 7 | 2 | 275 |
+| **Fear** | 10 | 1 | 0 | 3 | **186** | 24 | 224 |
+| **Surprise** | 4 | 2 | 0 | 0 | 2 | **58** | 66 |
+
+#### Key Performance Takeaways
+- **High Dominant Class Precision**: Strong precision in major classes like **Joy** (0.96), **Sadness** (0.95), and **Anger** (0.92) with very low false positive rates.
+- **High Minority Class Sensitivity (Recall)**: Underrepresented classes like **Love** (0.95 recall) and **Surprise** (0.88 recall) are identified reliably without suffering from class imbalance suppression.
+- **Natural Semantic Overlap**: Confusion patterns align naturally with linguistic closeness — primarily between `Joy` and `Love` (56 instances of true Joy predicted as Love) and between `Fear` and `Surprise` (24 instances of true Fear predicted as Surprise).
 
 ## 🔧 Configuration
 
@@ -324,6 +381,11 @@ Error: Address already in use
 ```bash
 uvicorn main:app --port 8001
 ```
+
+## 🙏 Acknowledgments & Credits
+
+- Dataset provided by Praveen Govi on Kaggle: [Emotions dataset for NLP](https://www.kaggle.com/datasets/praveengovi/emotions-dataset-for-nlp) (`praveengovi/emotions-dataset-for-nlp`).
+- Built with [FastAPI](https://fastapi.tiangolo.com/), [TensorFlow](https://www.tensorflow.org/), and [TensorFlow Lite](https://www.tensorflow.org/lite).
 
 ## 📝 License
 
