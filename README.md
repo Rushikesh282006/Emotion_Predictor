@@ -382,11 +382,6 @@ uvicorn main:app --port 8001
 - Dataset provided by Praveen Govi on Kaggle: [Emotions dataset for NLP](https://www.kaggle.com/datasets/praveengovi/emotions-dataset-for-nlp) (`praveengovi/emotions-dataset-for-nlp`).
 - Built with [FastAPI](https://fastapi.tiangolo.com/), [TensorFlow](https://www.tensorflow.org/), and [TensorFlow Lite](https://www.tensorflow.org/lite).
 
-## 📝 License
-
-This project is provided as-is for educational and research purposes.
-=======
->>>>>>> 61e0a6c05be7c35eb11771acf388d85fd2500b39
 
 ## 👨‍💻 Author
 
@@ -402,6 +397,6 @@ For issues or questions, please refer to the project documentation or examine th
 
 ---
 
-**Last Updated**: August 2026  
+**Last Updated**: November 2026  
 **Python Version**: 3.11.9  
 **Framework**: FastAPI 0.115.6
