@@ -237,9 +237,6 @@ The optimized Bidirectional GRU model was evaluated on a held-out test set of **
 
 #### Classification Report
 
-<p align="center">
-  <img src="assets/classification_report.png" alt="Classification Report" width="480"/>
-</p>
 
 | Emotion | Precision | Recall | F1-Score | Support |
 |:---|:---:|:---:|:---:|:---:|
@@ -255,9 +252,6 @@ The optimized Bidirectional GRU model was evaluated on a held-out test set of **
 
 #### Confusion Matrix: Optimized Bidirectional GRU
 
-<p align="center">
-  <img src="assets/confusion_matrix.png" alt="Confusion Matrix: Optimized Bidirectional GRU" width="540"/>
-</p>
 
 | True \ Predicted | Sadness | Joy | Love | Anger | Fear | Surprise | Total Samples |
 |:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
